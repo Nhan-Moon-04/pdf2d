@@ -1,0 +1,108 @@
+/* ---------------------------------------------------------------
+   Global
+--------------------------------------------------------------- */
+body {
+  background: #f4f6fb;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+/* ---------------------------------------------------------------
+   Login
+--------------------------------------------------------------- */
+.login-wrapper {
+  background: linear-gradient(135deg, #1a6fc4 0%, #0d3e7a 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 1rem;
+  border: none;
+}
+
+/* ---------------------------------------------------------------
+   Navbar
+--------------------------------------------------------------- */
+.navbar {
+  background: linear-gradient(90deg, #1a6fc4 0%, #0d3e7a 100%) !important;
+}
+
+/* ---------------------------------------------------------------
+   Cards
+--------------------------------------------------------------- */
+.card {
+  border-radius: 0.75rem;
+  border: 1px solid #e3e8f0;
+}
+
+.card-header {
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+/* ---------------------------------------------------------------
+   Drop zone
+--------------------------------------------------------------- */
+.drop-zone {
+  border-color: #b8c8e8 !important;
+  background: #f8faff;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.drop-zone.drag-over {
+  background: #e6f0ff;
+  border-color: #1a6fc4 !important;
+}
+
+.drop-zone:hover {
+  background: #eef4ff;
+}
+
+/* ---------------------------------------------------------------
+   File list
+--------------------------------------------------------------- */
+#fileList .list-group-item {
+  border-left: none;
+  border-right: none;
+  padding: 0.75rem 1rem;
+}
+
+#fileList .list-group-item:first-child {
+  border-top: none;
+}
+
+.file-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a6fc4;
+  word-break: break-all;
+}
+
+.file-meta {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+/* ---------------------------------------------------------------
+   Buttons
+--------------------------------------------------------------- */
+.btn-primary {
+  background: #1a6fc4;
+  border-color: #1a6fc4;
+}
+
+.btn-primary:hover {
+  background: #155ba3;
+  border-color: #155ba3;
+}
+
+/* ---------------------------------------------------------------
+   Result area
+--------------------------------------------------------------- */
+#resultArea .alert {
+  border-radius: 0.6rem;
+}
+
+.download-btn {
+  font-size: 0.9rem;
+}

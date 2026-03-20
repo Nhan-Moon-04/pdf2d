@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Đăng nhập — PDF2DOCX{% endblock %}
+
+{% block body %}
+<div class="login-wrapper d-flex align-items-center justify-content-center vh-100">
+  <div class="login-card card shadow-lg p-4">
+    <div class="text-center mb-4">
+      <div class="app-icon mb-3">
+        <i class="bi bi-file-earmark-word-fill text-primary" style="font-size:3rem;"></i>
+      </div>
+      <h3 class="fw-bold">PDF → DOCX</h3>
+      <p class="text-muted small">Chuyển đổi tài liệu PDF sang Word</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger py-2 small">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Tên đăng nhập</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light">
+            <i class="bi bi-person-fill text-secondary"></i>
+          </span>
+          <input
+            type="text"
+            name="username"
+            class="form-control"
+            placeholder="Nhập tên đăng nhập"
+            autofocus
+            required
+          />
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Mật khẩu</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light">
+            <i class="bi bi-lock-fill text-secondary"></i>
+          </span>
+          <input
+            type="password"
+            name="password"
+            id="passwordInput"
+            class="form-control"
+            placeholder="Nhập mật khẩu"
+            required
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            onclick="togglePwd()"
+            tabindex="-1"
+          >
+            <i class="bi bi-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 fw-semibold py-2">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function togglePwd() {
+    const inp = document.getElementById("passwordInput");
+    const ico = document.getElementById("eyeIcon");
+    if (inp.type === "password") {
+      inp.type = "text";
+      ico.className = "bi bi-eye-slash";
+    } else {
+      inp.type = "password";
+      ico.className = "bi bi-eye";
+    }
+  }
+</script>
+{% endblock %}
