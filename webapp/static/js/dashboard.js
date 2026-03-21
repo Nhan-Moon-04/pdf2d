@@ -16,7 +16,10 @@ pdfInput.addEventListener("change", () => {
   handleFile(pdfInput.files[0]);
 });
 
-dropZone.addEventListener("click", () => pdfInput.click());
+dropZone.addEventListener("click", (e) => {
+  if (e.target.closest("label") || e.target === pdfInput) return;
+  pdfInput.click();
+});
 
 dropZone.addEventListener("dragover", (e) => {
   e.preventDefault();
