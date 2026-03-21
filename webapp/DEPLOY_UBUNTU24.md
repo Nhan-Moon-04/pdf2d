@@ -1,12 +1,12 @@
-# Deploy lên Ubuntu 24.04 — Port 1611
+# Deploy lên Ubuntu 24.04 — Port 8080
 
 ## Kiến trúc (không cần Nginx)
 
 ```
-Internet :1611 → Gunicorn (0.0.0.0:1611) → Flask App
+Internet :8080 → Gunicorn (0.0.0.0:8080) → Flask App
 ```
 
-URL sau khi xong: **http://nthiennhan.duckdns.org:1611/**
+URL sau khi xong: **http://nthiennhan.duckdns.org:8080/**
 
 ---
 
@@ -82,7 +82,7 @@ WorkingDirectory=/var/www/pdf2docx/webapp
 EnvironmentFile=/var/www/pdf2docx/webapp/.env
 ExecStart=/var/www/pdf2docx/venv/bin/gunicorn \
     --workers 2 \
-    --bind 0.0.0.0:1611 \
+    --bind 0.0.0.0:8080 \
     --timeout 300 \
     --access-logfile /var/log/pdf2docx/access.log \
     --error-logfile /var/log/pdf2docx/error.log \
@@ -113,11 +113,11 @@ sudo systemctl status pdf2docx
 
 ---
 
-## Bước 6 — Mở firewall cổng 1611
+## Bước 6 — Mở firewall cổng 8080
 
 ```bash
 sudo ufw allow OpenSSH
-sudo ufw allow 1611/tcp
+sudo ufw allow 8080/tcp
 sudo ufw enable
 sudo ufw status
 ```
@@ -128,14 +128,14 @@ sudo ufw status
 
 ```bash
 # Test ngay trên server
-curl http://localhost:1611/
+curl http://localhost:8080/
 
 # Xem log nếu có lỗi
 sudo journalctl -u pdf2docx -f
 sudo tail -f /var/log/pdf2docx/error.log
 ```
 
-Truy cập: **http://nthiennhan.duckdns.org:1611/**
+Truy cập: **http://nthiennhan.duckdns.org:8080/**
 Đăng nhập: `admin` / `nguyennhan2004`
 
 ---
