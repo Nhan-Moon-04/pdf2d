@@ -1,3 +1,5 @@
+import csv
+import io
 import os
 import uuid
 import threading
@@ -195,17 +197,83 @@ def download_file(filename):
     )
 
 
+@app.route("/extract-tables", methods=["POST"])
+@login_required
+def extract_tables():
+    if "pdf_file" not in request.files:
+        return jsonify({"success": False, "error": "Chưa chọn file PDF."}), 400
+
+    pdf_file = request.files["pdf_file"]
+    if pdf_file.filename == "":
+        return jsonify({"success": False, "error": "Chưa chọn file PDF."}), 400
+
+    if not pdf_file.filename.lower().endswith(".pdf"):
+        return jsonify({"success": False, "error": "Chỉ chấp nhận file .pdf."}), 400
+
+    uid = uuid.uuid4().hex
+    original_name = Path(secure_filename(pdf_file.filename)).stem
+    pdf_path = UPLOAD_DIR / f"{uid}.pdf"
+    csv_name = f"{original_name}_{uid[:8]}.csv"
+    csv_path = OUTPUT_DIR / csv_name
+
+    pdf_file.save(str(pdf_path))
+
+    password = request.form.get("password") or None
+    start = int(request.form.get("start") or 0)
+    end_val = request.form.get("end")
+    end = int(end_val) if end_val else None
+    pages_raw = request.form.get("pages", "").strip()
+    pages = None
+    if pages_raw:
+        try:
+            pages = [int(p.strip()) for p in pages_raw.split(",") if p.strip()]
+        except ValueError:
+            return jsonify({"success": False, "error": "Danh sách trang không hợp lệ."}), 400
+
+    try:
+        import sys
+        sys.path.insert(0, str(BASE_DIR.parent))
+        from pdf2docx import Converter
+
+        cv = Converter(str(pdf_path), password=password)
+        tables = cv.extract_tables(start=start, end=end, pages=pages)
+        cv.close()
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+    if not tables:
+        return jsonify({"success": False, "error": "Không tìm thấy bảng nào trong file PDF."}), 400
+
+    # Write all tables to a single CSV, separated by blank lines
+    with open(str(csv_path), "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        for idx, table in enumerate(tables):
+            writer.writerow([f"=== Bảng {idx + 1} ==="])
+            for row in table:
+                writer.writerow(row)
+            writer.writerow([])  # blank line between tables
+
+    return jsonify({
+        "success": True,
+        "filename": csv_name,
+        "table_count": len(tables),
+        "download_url": url_for("download_file", filename=csv_name),
+    })
+
+
 @app.route("/files")
 @login_required
 def list_files():
     """Return list of available output files as JSON."""
     files = []
+    allowed_exts = {".docx", ".csv"}
     for fp in sorted(OUTPUT_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
-        if fp.is_file() and fp.suffix == ".docx":
+        if fp.is_file() and fp.suffix in allowed_exts:
             mtime = datetime.fromtimestamp(fp.stat().st_mtime)
             expire = mtime + timedelta(days=FILE_LIFETIME_DAYS)
             files.append({
                 "name": fp.name,
+                "type": fp.suffix.lstrip("."),
                 "size_kb": round(fp.stat().st_size / 1024, 1),
                 "created": mtime.strftime("%d/%m/%Y %H:%M"),
                 "expires": expire.strftime("%d/%m/%Y %H:%M"),
@@ -221,9 +289,7 @@ def delete_file(filename):
     fp = OUTPUT_DIR / safe
     if fp.exists():
         fp.unlink()
-        # also remove matching upload if present
         uid = safe.rsplit("_", 1)[-1].split(".")[0]
-        upload_match = UPLOAD_DIR / f"{uid}*.pdf"
         for up in UPLOAD_DIR.glob(f"*{uid}*.pdf"):
             up.unlink(missing_ok=True)
         return jsonify({"success": True})

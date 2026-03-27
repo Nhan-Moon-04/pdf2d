@@ -27,88 +27,206 @@
     <div class="col-lg-7">
       <div class="card shadow-sm h-100">
         <div class="card-header bg-white border-bottom py-3">
-          <h5 class="mb-0 fw-bold">
-            <i class="bi bi-cloud-upload-fill text-primary me-2"></i>Chuyển đổi PDF sang DOCX
-          </h5>
+          <!-- Mode tabs -->
+          <ul class="nav nav-tabs card-header-tabs" id="modeTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link active fw-semibold"
+                id="tab-convert"
+                data-bs-toggle="tab"
+                data-bs-target="#pane-convert"
+                type="button"
+                role="tab"
+              >
+                <i class="bi bi-file-earmark-word text-primary me-1"></i>PDF → Word
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link fw-semibold"
+                id="tab-tables"
+                data-bs-toggle="tab"
+                data-bs-target="#pane-tables"
+                type="button"
+                role="tab"
+              >
+                <i class="bi bi-table text-success me-1"></i>Trích xuất bảng → CSV
+              </button>
+            </li>
+          </ul>
         </div>
         <div class="card-body">
+          <div class="tab-content" id="modeTabContent">
 
-          <!-- Drop zone -->
-          <div
-            id="dropZone"
-            class="drop-zone border-2 border-dashed rounded-3 text-center p-5 mb-4"
-          >
-            <i class="bi bi-file-earmark-pdf display-4 text-danger mb-3 d-block"></i>
-            <p class="fw-semibold mb-1">Kéo thả file PDF vào đây</p>
-            <p class="text-muted small mb-3">hoặc</p>
-            <label class="btn btn-outline-primary" for="pdfInput">
-              <i class="bi bi-folder2-open me-1"></i>Chọn file
-            </label>
-            <input type="file" id="pdfInput" accept=".pdf" class="d-none" />
-            <p id="selectedFileName" class="mt-3 text-muted small"></p>
-          </div>
+            <!-- ── Tab 1: Convert PDF → DOCX ─────────────────────────── -->
+            <div class="tab-pane fade show active" id="pane-convert" role="tabpanel">
 
-          <!-- Options (collapsible) -->
-          <div class="mb-3">
-            <button
-              class="btn btn-outline-secondary btn-sm"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#advancedOpts"
-            >
-              <i class="bi bi-sliders me-1"></i>Tuỳ chọn nâng cao
-            </button>
-          </div>
-          <div class="collapse mb-4" id="advancedOpts">
-            <div class="card card-body bg-light border-0">
-              <div class="row g-3">
-                <div class="col-sm-6">
-                  <label class="form-label small fw-semibold">Mật khẩu PDF (nếu có)</label>
-                  <input type="password" id="pdfPassword" class="form-control form-control-sm"
-                         placeholder="Để trống nếu không có" />
-                </div>
-                <div class="col-sm-3">
-                  <label class="form-label small fw-semibold">Trang bắt đầu</label>
-                  <input type="number" id="startPage" class="form-control form-control-sm"
-                         value="0" min="0" placeholder="0" />
-                </div>
-                <div class="col-sm-3">
-                  <label class="form-label small fw-semibold">Trang kết thúc</label>
-                  <input type="number" id="endPage" class="form-control form-control-sm"
-                         placeholder="Cuối file" min="0" />
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-semibold">
-                    Trang cụ thể <span class="text-muted fw-normal">(VD: 0,2,4)</span>
-                  </label>
-                  <input type="text" id="pages" class="form-control form-control-sm"
-                         placeholder="Để trống để lấy tất cả" />
+              <!-- Drop zone -->
+              <div
+                id="dropZone"
+                class="drop-zone border-2 border-dashed rounded-3 text-center p-5 mb-4"
+              >
+                <i class="bi bi-file-earmark-pdf display-4 text-danger mb-3 d-block"></i>
+                <p class="fw-semibold mb-1">Kéo thả file PDF vào đây</p>
+                <p class="text-muted small mb-3">hoặc</p>
+                <label class="btn btn-outline-primary" for="pdfInput">
+                  <i class="bi bi-folder2-open me-1"></i>Chọn file
+                </label>
+                <input type="file" id="pdfInput" accept=".pdf" class="d-none" />
+                <p id="selectedFileName" class="mt-3 text-muted small"></p>
+              </div>
+
+              <!-- Options (collapsible) -->
+              <div class="mb-3">
+                <button
+                  class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#advancedOpts"
+                >
+                  <i class="bi bi-sliders me-1"></i>Tuỳ chọn nâng cao
+                </button>
+              </div>
+              <div class="collapse mb-4" id="advancedOpts">
+                <div class="card card-body bg-light border-0">
+                  <div class="row g-3">
+                    <div class="col-sm-6">
+                      <label class="form-label small fw-semibold">Mật khẩu PDF (nếu có)</label>
+                      <input type="password" id="pdfPassword" class="form-control form-control-sm"
+                             placeholder="Để trống nếu không có" />
+                    </div>
+                    <div class="col-sm-3">
+                      <label class="form-label small fw-semibold">Trang bắt đầu</label>
+                      <input type="number" id="startPage" class="form-control form-control-sm"
+                             value="0" min="0" placeholder="0" />
+                    </div>
+                    <div class="col-sm-3">
+                      <label class="form-label small fw-semibold">Trang kết thúc</label>
+                      <input type="number" id="endPage" class="form-control form-control-sm"
+                             placeholder="Cuối file" min="0" />
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label small fw-semibold">
+                        Trang cụ thể <span class="text-muted fw-normal">(VD: 0,2,4)</span>
+                      </label>
+                      <input type="text" id="pages" class="form-control form-control-sm"
+                             placeholder="Để trống để lấy tất cả" />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Convert button -->
-          <button id="convertBtn" class="btn btn-primary px-4 py-2 fw-semibold" disabled>
-            <i class="bi bi-arrow-repeat me-1"></i>Chuyển đổi
-          </button>
+              <!-- Convert button -->
+              <button id="convertBtn" class="btn btn-primary px-4 py-2 fw-semibold" disabled>
+                <i class="bi bi-arrow-repeat me-1"></i>Chuyển đổi sang Word
+              </button>
 
-          <!-- Progress -->
-          <div id="progressWrap" class="mt-4 d-none">
-            <div class="d-flex align-items-center gap-2 mb-2">
-              <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-              <span class="small text-muted">Đang chuyển đổi, vui lòng chờ…</span>
+              <!-- Progress -->
+              <div id="progressWrap" class="mt-4 d-none">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                  <span class="small text-muted">Đang chuyển đổi, vui lòng chờ…</span>
+                </div>
+                <div class="progress" style="height:6px;">
+                  <div
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                    style="width:100%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Result -->
+              <div id="resultArea" class="mt-4"></div>
             </div>
-            <div class="progress" style="height:6px;">
+
+            <!-- ── Tab 2: Extract Tables → CSV ────────────────────────── -->
+            <div class="tab-pane fade" id="pane-tables" role="tabpanel">
+
+              <!-- Drop zone -->
               <div
-                class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                style="width:100%"
-              ></div>
-            </div>
-          </div>
+                id="dropZone2"
+                class="drop-zone border-2 border-dashed rounded-3 text-center p-5 mb-4"
+              >
+                <i class="bi bi-file-earmark-pdf display-4 text-danger mb-3 d-block"></i>
+                <p class="fw-semibold mb-1">Kéo thả file PDF vào đây</p>
+                <p class="text-muted small mb-3">hoặc</p>
+                <label class="btn btn-outline-success" for="pdfInput2">
+                  <i class="bi bi-folder2-open me-1"></i>Chọn file
+                </label>
+                <input type="file" id="pdfInput2" accept=".pdf" class="d-none" />
+                <p id="selectedFileName2" class="mt-3 text-muted small"></p>
+              </div>
 
-          <!-- Result -->
-          <div id="resultArea" class="mt-4"></div>
+              <!-- Options (collapsible) -->
+              <div class="mb-3">
+                <button
+                  class="btn btn-outline-secondary btn-sm"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#advancedOpts2"
+                >
+                  <i class="bi bi-sliders me-1"></i>Tuỳ chọn nâng cao
+                </button>
+              </div>
+              <div class="collapse mb-4" id="advancedOpts2">
+                <div class="card card-body bg-light border-0">
+                  <div class="row g-3">
+                    <div class="col-sm-6">
+                      <label class="form-label small fw-semibold">Mật khẩu PDF (nếu có)</label>
+                      <input type="password" id="pdfPassword2" class="form-control form-control-sm"
+                             placeholder="Để trống nếu không có" />
+                    </div>
+                    <div class="col-sm-3">
+                      <label class="form-label small fw-semibold">Trang bắt đầu</label>
+                      <input type="number" id="startPage2" class="form-control form-control-sm"
+                             value="0" min="0" placeholder="0" />
+                    </div>
+                    <div class="col-sm-3">
+                      <label class="form-label small fw-semibold">Trang kết thúc</label>
+                      <input type="number" id="endPage2" class="form-control form-control-sm"
+                             placeholder="Cuối file" min="0" />
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label small fw-semibold">
+                        Trang cụ thể <span class="text-muted fw-normal">(VD: 0,2,4)</span>
+                      </label>
+                      <input type="text" id="pages2" class="form-control form-control-sm"
+                             placeholder="Để trống để lấy tất cả" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="alert alert-info py-2 px-3 small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                Tính năng này trích xuất toàn bộ bảng biểu trong PDF và lưu thành file <strong>.csv</strong> (mở được bằng Excel).
+                Chỉ hoạt động với PDF dạng văn bản (không phải ảnh scan).
+              </div>
+
+              <!-- Extract button -->
+              <button id="extractBtn" class="btn btn-success px-4 py-2 fw-semibold" disabled>
+                <i class="bi bi-table me-1"></i>Trích xuất bảng
+              </button>
+
+              <!-- Progress -->
+              <div id="progressWrap2" class="mt-4 d-none">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+                  <span class="small text-muted">Đang trích xuất bảng, vui lòng chờ…</span>
+                </div>
+                <div class="progress" style="height:6px;">
+                  <div
+                    class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                    style="width:100%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Result -->
+              <div id="resultArea2" class="mt-4"></div>
+            </div>
+
+          </div><!-- /tab-content -->
         </div>
       </div>
     </div>
@@ -118,7 +236,7 @@
       <div class="card shadow-sm h-100">
         <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
           <h5 class="mb-0 fw-bold">
-            <i class="bi bi-clock-history text-success me-2"></i>File đã chuyển đổi
+            <i class="bi bi-clock-history text-success me-2"></i>File đã tạo
           </h5>
           <button class="btn btn-outline-secondary btn-sm" onclick="loadFiles()">
             <i class="bi bi-arrow-clockwise"></i>

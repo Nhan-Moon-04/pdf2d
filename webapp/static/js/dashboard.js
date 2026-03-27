@@ -2,45 +2,38 @@
    Dashboard JS — PDF2DOCX Web App
 --------------------------------------------------------------- */
 
-const dropZone    = document.getElementById("dropZone");
-const pdfInput    = document.getElementById("pdfInput");
-const convertBtn  = document.getElementById("convertBtn");
-const progressWrap = document.getElementById("progressWrap");
-const resultArea  = document.getElementById("resultArea");
+// ── Tab 1: PDF → DOCX ─────────────────────────────────────────
+
+const dropZone         = document.getElementById("dropZone");
+const pdfInput         = document.getElementById("pdfInput");
+const convertBtn       = document.getElementById("convertBtn");
+const progressWrap     = document.getElementById("progressWrap");
+const resultArea       = document.getElementById("resultArea");
 const selectedFileName = document.getElementById("selectedFileName");
 
 let selectedFile = null;
 
-// ── File selection ────────────────────────────────────────────
-pdfInput.addEventListener("change", () => {
-  handleFile(pdfInput.files[0]);
-});
+pdfInput.addEventListener("change", () => handleFile(pdfInput.files[0]));
 
 dropZone.addEventListener("click", (e) => {
   if (e.target.closest("label") || e.target === pdfInput) return;
   pdfInput.click();
 });
-
 dropZone.addEventListener("dragover", (e) => {
   e.preventDefault();
   dropZone.classList.add("drag-over");
 });
-
-dropZone.addEventListener("dragleave", () => {
-  dropZone.classList.remove("drag-over");
-});
-
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("drag-over"));
 dropZone.addEventListener("drop", (e) => {
   e.preventDefault();
   dropZone.classList.remove("drag-over");
-  const file = e.dataTransfer.files[0];
-  if (file) handleFile(file);
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
 });
 
 function handleFile(file) {
   if (!file) return;
   if (!file.name.toLowerCase().endsWith(".pdf")) {
-    showResult(false, "Chỉ chấp nhận file .pdf");
+    showResult(resultArea, false, "Chỉ chấp nhận file .pdf");
     return;
   }
   selectedFile = file;
@@ -49,7 +42,6 @@ function handleFile(file) {
   resultArea.innerHTML = "";
 }
 
-// ── Convert ──────────────────────────────────────────────────
 convertBtn.addEventListener("click", async () => {
   if (!selectedFile) return;
 
@@ -75,7 +67,7 @@ convertBtn.addEventListener("click", async () => {
     const data = await res.json();
 
     if (data.success) {
-      showResult(true, `
+      showResult(resultArea, true, `
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
           <div>
             <i class="bi bi-check-circle-fill text-success me-1"></i>
@@ -83,28 +75,125 @@ convertBtn.addEventListener("click", async () => {
             <div class="text-muted small mt-1">${data.filename}</div>
           </div>
           <a href="${data.download_url}" class="btn btn-success download-btn">
-            <i class="bi bi-download me-1"></i>Tải xuống
+            <i class="bi bi-download me-1"></i>Tải xuống .docx
           </a>
         </div>
       `);
       loadFiles();
     } else {
-      showResult(false, data.error || "Lỗi không xác định.");
+      showResult(resultArea, false, data.error || "Lỗi không xác định.");
     }
   } catch (err) {
-    showResult(false, "Không thể kết nối máy chủ.");
+    showResult(resultArea, false, "Không thể kết nối máy chủ.");
   } finally {
     progressWrap.classList.add("d-none");
     convertBtn.disabled = false;
   }
 });
 
-function showResult(success, html) {
-  const cls = success ? "alert-success" : "alert-danger";
-  resultArea.innerHTML = `<div class="alert ${cls}">${html}</div>`;
+
+// ── Tab 2: Extract Tables → CSV ───────────────────────────────
+
+const dropZone2         = document.getElementById("dropZone2");
+const pdfInput2         = document.getElementById("pdfInput2");
+const extractBtn        = document.getElementById("extractBtn");
+const progressWrap2     = document.getElementById("progressWrap2");
+const resultArea2       = document.getElementById("resultArea2");
+const selectedFileName2 = document.getElementById("selectedFileName2");
+
+let selectedFile2 = null;
+
+pdfInput2.addEventListener("change", () => handleFile2(pdfInput2.files[0]));
+
+dropZone2.addEventListener("click", (e) => {
+  if (e.target.closest("label") || e.target === pdfInput2) return;
+  pdfInput2.click();
+});
+dropZone2.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone2.classList.add("drag-over");
+});
+dropZone2.addEventListener("dragleave", () => dropZone2.classList.remove("drag-over"));
+dropZone2.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone2.classList.remove("drag-over");
+  if (e.dataTransfer.files[0]) handleFile2(e.dataTransfer.files[0]);
+});
+
+function handleFile2(file) {
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith(".pdf")) {
+    showResult(resultArea2, false, "Chỉ chấp nhận file .pdf");
+    return;
+  }
+  selectedFile2 = file;
+  selectedFileName2.textContent = `Đã chọn: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  extractBtn.disabled = false;
+  resultArea2.innerHTML = "";
 }
 
+extractBtn.addEventListener("click", async () => {
+  if (!selectedFile2) return;
+
+  const formData = new FormData();
+  formData.append("pdf_file", selectedFile2);
+
+  const password = document.getElementById("pdfPassword2").value.trim();
+  const start    = document.getElementById("startPage2").value;
+  const end      = document.getElementById("endPage2").value.trim();
+  const pages    = document.getElementById("pages2").value.trim();
+
+  if (password) formData.append("password", password);
+  formData.append("start", start || "0");
+  if (end)   formData.append("end", end);
+  if (pages) formData.append("pages", pages);
+
+  extractBtn.disabled = true;
+  progressWrap2.classList.remove("d-none");
+  resultArea2.innerHTML = "";
+
+  try {
+    const res  = await fetch("/extract-tables", { method: "POST", body: formData });
+    const data = await res.json();
+
+    if (data.success) {
+      showResult(resultArea2, true, `
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <i class="bi bi-check-circle-fill text-success me-1"></i>
+            <strong>Trích xuất thành công!</strong>
+            <div class="text-muted small mt-1">
+              Tìm thấy <strong>${data.table_count}</strong> bảng &nbsp;·&nbsp; ${data.filename}
+            </div>
+          </div>
+          <a href="${data.download_url}" class="btn btn-success download-btn">
+            <i class="bi bi-download me-1"></i>Tải xuống .csv
+          </a>
+        </div>
+      `);
+      loadFiles();
+    } else {
+      showResult(resultArea2, false, data.error || "Lỗi không xác định.");
+    }
+  } catch (err) {
+    showResult(resultArea2, false, "Không thể kết nối máy chủ.");
+  } finally {
+    progressWrap2.classList.add("d-none");
+    extractBtn.disabled = false;
+  }
+});
+
+
+// ── Shared helpers ────────────────────────────────────────────
+
+function showResult(container, success, html) {
+  const cls = success ? "alert-success" : "alert-danger";
+  container.innerHTML = `<div class="alert ${cls}">${html}</div>`;
+}
+
+
 // ── File list ─────────────────────────────────────────────────
+
 async function loadFiles() {
   const listEl  = document.getElementById("fileList");
   const emptyEl = document.getElementById("fileListEmpty");
@@ -122,13 +211,23 @@ async function loadFiles() {
     emptyEl.style.display = "none";
 
     files.forEach((f) => {
+      const isCsv  = f.type === "csv";
+      const icon   = isCsv ? "bi-file-earmark-spreadsheet text-success" : "bi-file-earmark-word text-primary";
+      const badge  = isCsv
+        ? '<span class="badge bg-success ms-1" style="font-size:0.65rem">CSV</span>'
+        : '<span class="badge bg-primary ms-1" style="font-size:0.65rem">DOCX</span>';
+
       const li = document.createElement("li");
       li.className = "list-group-item";
       li.innerHTML = `
         <div class="d-flex justify-content-between align-items-start gap-2">
           <div class="flex-grow-1 overflow-hidden">
-            <div class="file-name text-truncate" title="${f.name}">${f.name}</div>
-            <div class="file-meta">
+            <div class="d-flex align-items-center gap-1">
+              <i class="bi ${icon}"></i>
+              <span class="file-name text-truncate" title="${f.name}">${f.name}</span>
+              ${badge}
+            </div>
+            <div class="file-meta mt-1">
               ${f.size_kb} KB &nbsp;·&nbsp;
               <i class="bi bi-calendar3"></i> ${f.created} &nbsp;·&nbsp;
               <i class="bi bi-hourglass-split"></i> hết hạn ${f.expires}
@@ -168,6 +267,7 @@ async function deleteFile(filename, btn) {
     }
   } catch (err) {
     alert("Lỗi kết nối.");
+    btn.disabled = false;
   }
 }
 
