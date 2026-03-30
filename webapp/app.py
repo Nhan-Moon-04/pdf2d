@@ -7,6 +7,7 @@ import time
 from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
+import re
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
@@ -266,7 +267,7 @@ def extract_tables():
 def list_files():
     """Return list of available output files as JSON."""
     files = []
-    allowed_exts = {".docx", ".csv"}
+    allowed_exts = {".docx", ".csv", ".pdf"}
     for fp in sorted(OUTPUT_DIR.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
         if fp.is_file() and fp.suffix in allowed_exts:
             mtime = datetime.fromtimestamp(fp.stat().st_mtime)
@@ -289,11 +290,85 @@ def delete_file(filename):
     fp = OUTPUT_DIR / safe
     if fp.exists():
         fp.unlink()
-        uid = safe.rsplit("_", 1)[-1].split(".")[0]
-        for up in UPLOAD_DIR.glob(f"*{uid}*.pdf"):
-            up.unlink(missing_ok=True)
+        uid_match = re.search(r"_([a-f0-9]{8})_", safe)
+        if uid_match:
+            uid = uid_match.group(1)
+            for up in UPLOAD_DIR.glob(f"*{uid}*"):
+                up.unlink(missing_ok=True)
         return jsonify({"success": True})
     return jsonify({"success": False, "error": "File không tồn tại."}), 404
+
+
+@app.route("/protect-pdf", methods=["POST"])
+@login_required
+def protect_pdf():
+    if "pdf_file" not in request.files:
+        return jsonify({"success": False, "error": "Chưa chọn file PDF."}), 400
+
+    pdf_file = request.files["pdf_file"]
+    if pdf_file.filename == "":
+        return jsonify({"success": False, "error": "Chưa chọn file PDF."}), 400
+
+    if not pdf_file.filename.lower().endswith(".pdf"):
+        return jsonify({"success": False, "error": "Chỉ chấp nhận file .pdf."}), 400
+
+    # --- Get options from form ---
+    user_pass = request.form.get("user_password")
+    owner_pass = request.form.get("owner_password") or user_pass
+
+    if not user_pass:
+        return jsonify({"success": False, "error": "Mật khẩu người dùng không được để trống."}), 400
+
+    allow_print = request.form.get("allow_print") == "true"
+    allow_copy = request.form.get("allow_copy") == "true"
+    allow_modify = request.form.get("allow_modify") == "true"
+
+    # --- Save uploaded file ---
+    uid = uuid.uuid4().hex
+    original_name = Path(secure_filename(pdf_file.filename)).stem
+    pdf_path = UPLOAD_DIR / f"{uid}_unprotected.pdf"
+    protected_name = f"{original_name}_{uid[:8]}_protected.pdf"
+    protected_path = OUTPUT_DIR / protected_name
+
+    pdf_file.save(str(pdf_path))
+
+    # --- Apply protection using pikepdf ---
+    try:
+        import pikepdf
+
+        permissions = pikepdf.Permissions(
+            extract=allow_copy,
+            modify_form=allow_modify,
+            modify_annotation=allow_modify,
+            modify_other=allow_modify,
+            print_highres=allow_print,
+            print_lowres=allow_print,
+        )
+
+        with pikepdf.open(pdf_path) as pdf:
+            pdf.save(
+                str(protected_path),
+                encryption=pikepdf.Encryption(
+                    user=user_pass,
+                    owner=owner_pass,
+                    allow=permissions,
+                    R=6,  # AES-256
+                ),
+            )
+    except Exception as exc:
+        # Clean up temp file on error
+        pdf_path.unlink(missing_ok=True)
+        return jsonify({"success": False, "error": f"Lỗi khi đặt mật khẩu: {exc}"}), 500
+    finally:
+        # Clean up original unprotected file
+        pdf_path.unlink(missing_ok=True)
+
+
+    return jsonify({
+        "success": True,
+        "filename": protected_name,
+        "download_url": url_for("download_file", filename=protected_name),
+    })
 
 
 # ---------------------------------------------------------------------------

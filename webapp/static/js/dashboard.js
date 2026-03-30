@@ -184,6 +184,103 @@ extractBtn.addEventListener("click", async () => {
 });
 
 
+// ── Tab 3: Set PDF Password ───────────────────────────────────
+
+const dropZone3         = document.getElementById("dropZone3");
+const pdfInput3         = document.getElementById("pdfInput3");
+const protectBtn        = document.getElementById("protectBtn");
+const progressWrap3     = document.getElementById("progressWrap3");
+const resultArea3       = document.getElementById("resultArea3");
+const selectedFileName3 = document.getElementById("selectedFileName3");
+
+let selectedFile3 = null;
+
+pdfInput3.addEventListener("change", () => handleFile3(pdfInput3.files[0]));
+
+dropZone3.addEventListener("click", (e) => {
+  if (e.target.closest("label") || e.target === pdfInput3) return;
+  pdfInput3.click();
+});
+dropZone3.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  dropZone3.classList.add("drag-over");
+});
+dropZone3.addEventListener("dragleave", () => dropZone3.classList.remove("drag-over"));
+dropZone3.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropZone3.classList.remove("drag-over");
+  if (e.dataTransfer.files[0]) handleFile3(e.dataTransfer.files[0]);
+});
+
+function handleFile3(file) {
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith(".pdf")) {
+    showResult(resultArea3, false, "Chỉ chấp nhận file .pdf");
+    return;
+  }
+  selectedFile3 = file;
+  selectedFileName3.textContent = `Đã chọn: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  protectBtn.disabled = false;
+  resultArea3.innerHTML = "";
+}
+
+protectBtn.addEventListener("click", async () => {
+  if (!selectedFile3) return;
+
+  const formData = new FormData();
+  formData.append("pdf_file", selectedFile3);
+
+  const userPassword = document.getElementById("userPassword3").value;
+  const ownerPassword = document.getElementById("ownerPassword3").value;
+  const allowPrinting = document.getElementById("allowPrinting").checked;
+  const allowCopy = document.getElementById("allowCopy").checked;
+  const allowModify = document.getElementById("allowModify").checked;
+
+  if (!userPassword) {
+      showResult(resultArea3, false, "Mật khẩu người dùng không được để trống.");
+      return;
+  }
+
+  formData.append("user_password", userPassword);
+  formData.append("owner_password", ownerPassword);
+  formData.append("allow_print", allowPrinting);
+  formData.append("allow_copy", allowCopy);
+  formData.append("allow_modify", allowModify);
+
+  protectBtn.disabled = true;
+  progressWrap3.classList.remove("d-none");
+  resultArea3.innerHTML = "";
+
+  try {
+    const res  = await fetch("/protect-pdf", { method: "POST", body: formData });
+    const data = await res.json();
+
+    if (data.success) {
+      showResult(resultArea3, true, `
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <i class="bi bi-check-circle-fill text-success me-1"></i>
+            <strong>Đặt mật khẩu thành công!</strong>
+            <div class="text-muted small mt-1">${data.filename}</div>
+          </div>
+          <a href="${data.download_url}" class="btn btn-success download-btn">
+            <i class="bi bi-download me-1"></i>Tải xuống PDF
+          </a>
+        </div>
+      `);
+      loadFiles();
+    } else {
+      showResult(resultArea3, false, data.error || "Lỗi không xác định.");
+    }
+  } catch (err) {
+    showResult(resultArea3, false, "Không thể kết nối máy chủ.");
+  } finally {
+    progressWrap3.classList.add("d-none");
+    protectBtn.disabled = false;
+  }
+});
+
+
 // ── Shared helpers ────────────────────────────────────────────
 
 function showResult(container, success, html) {
@@ -212,10 +309,20 @@ async function loadFiles() {
 
     files.forEach((f) => {
       const isCsv  = f.type === "csv";
-      const icon   = isCsv ? "bi-file-earmark-spreadsheet text-success" : "bi-file-earmark-word text-primary";
-      const badge  = isCsv
-        ? '<span class="badge bg-success ms-1" style="font-size:0.65rem">CSV</span>'
-        : '<span class="badge bg-primary ms-1" style="font-size:0.65rem">DOCX</span>';
+      const isPdf = f.type === "pdf";
+      let icon, badge;
+
+      if (isCsv) {
+          icon = "bi-file-earmark-spreadsheet text-success";
+          badge = '<span class="badge bg-success ms-1" style="font-size:0.65rem">CSV</span>';
+      } else if (isPdf) {
+          icon = "bi-file-earmark-lock text-warning";
+          badge = '<span class="badge bg-warning ms-1" style="font-size:0.65rem">PDF</span>';
+      } else {
+          icon = "bi-file-earmark-word text-primary";
+          badge = '<span class="badge bg-primary ms-1" style="font-size:0.65rem">DOCX</span>';
+      }
+
 
       const li = document.createElement("li");
       li.className = "list-group-item";

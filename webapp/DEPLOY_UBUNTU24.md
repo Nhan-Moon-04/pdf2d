@@ -128,7 +128,7 @@ sudo ufw status
 
 ```bash
 # Test ngay trên server
-curl http://localhost:8080/
+curl http://localhost:8081/
 
 # Xem log nếu có lỗi
 sudo journalctl -u pdf2docx -f
