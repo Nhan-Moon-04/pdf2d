@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c \"from app import app; print\\(''App loaded OK''\\)\")"
+      "Bash(python -c \"from app import app; print\\(''App loaded OK''\\)\")",
+      "Bash(pip install:*)",
+      "Bash(python -c \"import pikepdf; print\\(pikepdf.__version__\\)\")"
     ]
   }
 }

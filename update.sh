@@ -14,7 +14,7 @@ git pull origin main
 echo "==> Cài dependencies (nếu có thay đổi)..."
 source "$APP_DIR/venv/bin/activate"
 pip install -e . -q
-pip install flask gunicorn -q
+pip install -r "$APP_DIR/webapp/requirements.txt" -q
 
 echo "==> Restart service..."
 systemctl restart "$SERVICE"

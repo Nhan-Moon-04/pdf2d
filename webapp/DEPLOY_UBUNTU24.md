@@ -41,8 +41,8 @@ source venv/bin/activate
 # Cài pdf2docx từ source
 pip install -e .
 
-# Cài Flask + Gunicorn
-pip install flask gunicorn
+# Cài tất cả dependencies (Flask, Gunicorn, pikepdf, ...)
+pip install -r webapp/requirements.txt gunicorn
 
 # Tạo thư mục lưu file
 mkdir -p webapp/uploads webapp/outputs
